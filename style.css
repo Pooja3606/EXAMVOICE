@@ -418,3 +418,124 @@ body.dark-mode .mobile-theme-toggle { border-color: rgb(221 239 235 / 14%); back
   .quiz-result-actions .rating-button { min-width: 0; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+html, body { min-height: 100%; }
+body { overflow-x: hidden; overflow-y: auto; }
+.app-shell { height: auto; min-height: 100vh; align-items: stretch; }
+.main-content { min-height: 100vh; }
+
+.flashcard {
+  display: block;
+  min-height: 360px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  box-shadow: none;
+  perspective: 1400px;
+  transform: none;
+}
+.flashcard:hover { transform: none; border-color: transparent; }
+body.dark-mode .flashcard,
+body.dark-mode .flashcard:hover,
+body.dark-mode .flashcard.flipped {
+  border: 0;
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.flashcard-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: inherit;
+  transform-style: preserve-3d;
+  transition: transform .72s cubic-bezier(.2, .75, .25, 1);
+}
+.flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 22px 24px 19px;
+  border: 1px solid rgb(255 255 255 / 33%);
+  border-radius: 24px;
+  background-color: #2564b5;
+  background-image:
+    radial-gradient(ellipse at 12% 3%, rgb(181 225 255 / 34%), transparent 38%),
+    radial-gradient(ellipse at 92% 94%, rgb(154 139 255 / 32%), transparent 43%),
+    linear-gradient(137deg, #327cc9 0%, #245db0 51%, #414ba3 100%);
+  box-shadow: 0 24px 62px rgb(18 77 159 / 25%), inset 0 1px rgb(255 255 255 / 31%);
+  color: #f5f9ff;
+  text-align: left;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  backdrop-filter: blur(20px);
+}
+.flashcard-face::before {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(255 255 255 / 13%) .7px, transparent .7px);
+  background-size: 22px 22px;
+  content: '';
+  opacity: .36;
+  pointer-events: none;
+}
+.flashcard-back {
+  transform: rotateY(180deg);
+  background-image:
+    radial-gradient(ellipse at 88% 5%, rgb(174 204 255 / 30%), transparent 39%),
+    radial-gradient(ellipse at 10% 100%, rgb(143 130 255 / 32%), transparent 46%),
+    linear-gradient(137deg, #315faa 0%, #384da2 52%, #51489f 100%);
+}
+.flashcard .card-topline,
+.flashcard .card-bottomline,
+.flashcard .card-audio { color: rgb(235 245 255 / 77%); }
+.flashcard .card-audio i { color: #bceaff; }
+.flashcard .card-side-label { color: #b9e8ff; }
+.flashcard .card-question,
+.flashcard.flipped .card-question { color: #fff; }
+.flashcard .card-hint { color: rgb(235 245 255 / 77%); }
+.flashcard .card-hint span { border-color: rgb(255 255 255 / 30%); }
+.flashcard .card-number { color: #d7e9ff; }
+.flashcard:hover .flashcard-inner { transform: translateY(-4px); }
+.flashcard.flipped:hover .flashcard-inner { transform: rotateY(180deg) translateY(-4px); }
+.flashcard:focus-visible { outline-offset: 6px; }
+
+.quiz-timer {
+  display: inline-flex;
+  min-width: 43px;
+  justify-content: center;
+  padding: 4px 9px;
+  border: 1px solid rgb(86 139 239 / 30%);
+  border-radius: 999px;
+  background: rgb(62 121 218 / 10%);
+  color: #3976c7;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.quiz-timer.is-urgent {
+  border-color: rgb(229 86 95 / 38%);
+  background: rgb(229 86 95 / 11%);
+  color: #d7505d;
+}
+body.dark-mode .quiz-timer { color: #a9c8ff; background: rgb(62 121 218 / 15%); }
+body.dark-mode .quiz-timer.is-urgent { color: #ff9da5; background: rgb(229 86 95 / 14%); }
+
+@media (max-width: 650px) {
+  .flashcard { min-height: 310px; }
+  .flashcard-face { padding: 19px 18px 16px; border-radius: 21px; }
+}
+@media (max-width: 420px) {
+  .flashcard { min-height: 275px; }
+  .flashcard-face { padding: 16px 14px; border-radius: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flashcard-inner { transition: none; }
+}

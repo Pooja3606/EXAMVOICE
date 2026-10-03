@@ -92,19 +92,32 @@
               </div>
 
               <button class="flashcard" id="flashcard" type="button" aria-label="Flashcard. Click to reveal the answer" aria-pressed="false">
-                <span class="card-topline"><span id="card-category">CELL BIOLOGY</span><span class="card-audio" id="audio-indicator">AUDIO READY <i aria-hidden="true">◖</i></span></span>
-                <span class="card-center">
-                  <span class="card-side-label" id="card-side-label">TERM</span>
-                  <span class="card-question" id="card-question">What is the powerhouse of the cell?</span>
-                  <span class="card-hint" id="card-hint"><span aria-hidden="true">↵</span> Click to reveal answer</span>
+                <span class="flashcard-inner">
+                  <span class="flashcard-face flashcard-front" id="flashcard-front">
+                    <span class="card-topline"><span id="card-category">CELL BIOLOGY</span><span class="card-audio" id="audio-indicator">AUDIO READY <i aria-hidden="true">◖</i></span></span>
+                    <span class="card-center">
+                      <span class="card-side-label">TERM</span>
+                      <span class="card-question" id="card-question">What is the powerhouse of the cell?</span>
+                      <span class="card-hint" id="card-hint"><span aria-hidden="true">↵</span> Click to reveal answer</span>
+                    </span>
+                    <span class="card-bottomline"><span id="card-origin">BIOLOGY BASICS</span><span class="card-number" id="card-number">01</span></span>
+                  </span>
+                  <span class="flashcard-face flashcard-back" id="flashcard-back" aria-hidden="true">
+                    <span class="card-topline"><span id="card-category-back">CELL BIOLOGY</span><span class="card-audio">YOUR ANSWER</span></span>
+                    <span class="card-center">
+                      <span class="card-side-label">ANSWER</span>
+                      <span class="card-question" id="card-answer">The mitochondrion produces most of the cell’s usable energy.</span>
+                      <span class="card-hint">Click to see the question</span>
+                    </span>
+                    <span class="card-bottomline"><span id="card-origin-back">BIOLOGY BASICS</span><span class="card-number" id="card-number-back">01</span></span>
+                  </span>
                 </span>
-                <span class="card-bottomline"><span id="card-origin">BIOLOGY BASICS</span><span class="card-number" id="card-number">01</span></span>
               </button>
 
               <div class="quiz-controls" id="quiz-controls" hidden>
                 <div class="quiz-progress-label"><span id="quiz-step">QUESTION 1 / 10</span><span id="quiz-score">0 correct</span></div>
                 <div class="quiz-progress-track"><span id="quiz-progress-fill"></span></div>
-                <div class="quiz-live-stats"><span id="quiz-streak">0 answer streak</span><span>CHOOSE ONE ANSWER</span></div>
+                <div class="quiz-live-stats"><span id="quiz-streak">0 correct in a row</span><span class="quiz-timer" id="quiz-timer" role="timer" aria-label="20 seconds remaining">20s</span></div>
                 <div class="quiz-options" id="quiz-options" role="group" aria-label="Answer choices"></div>
                 <p class="quiz-feedback" id="quiz-feedback" role="status" aria-live="polite" hidden></p>
                 <button class="quiz-continue" id="quiz-continue-button" type="button" hidden>Continue <span aria-hidden="true">→</span></button>

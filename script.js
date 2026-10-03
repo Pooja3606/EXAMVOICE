@@ -72,6 +72,8 @@ let quizStreak = 0;
 let bestQuizStreak = 0;
 let quizOptions = [];
 let quizChoice = -1;
+let quizTimeLeft = 20;
+let quizTimerInterval;
 let sessionReviewed = 0;
 let sessionKnown = 0;
 let toastTimeout;
@@ -83,13 +85,18 @@ const elements = {
   subjectSelector: document.querySelector('#subject-selector'),
   activeDeckDot: document.querySelector('#active-deck-dot'),
   card: document.querySelector('#flashcard'),
+  cardFront: document.querySelector('#flashcard-front'),
+  cardBack: document.querySelector('#flashcard-back'),
   category: document.querySelector('#card-category'),
+  backCategory: document.querySelector('#card-category-back'),
   audioIndicator: document.querySelector('#audio-indicator'),
-  sideLabel: document.querySelector('#card-side-label'),
   question: document.querySelector('#card-question'),
+  answer: document.querySelector('#card-answer'),
   hint: document.querySelector('#card-hint'),
   origin: document.querySelector('#card-origin'),
+  backOrigin: document.querySelector('#card-origin-back'),
   cardNumber: document.querySelector('#card-number'),
+  backCardNumber: document.querySelector('#card-number-back'),
   position: document.querySelector('#card-position'),
   deckSearch: document.querySelector('#deck-search'),
   quizModeButton: document.querySelector('#quiz-mode-button'),
@@ -100,6 +107,7 @@ const elements = {
   quizScore: document.querySelector('#quiz-score'),
   quizProgressFill: document.querySelector('#quiz-progress-fill'),
   quizStreak: document.querySelector('#quiz-streak'),
+  quizTimer: document.querySelector('#quiz-timer'),
   quizOptions: document.querySelector('#quiz-options'),
   quizFeedback: document.querySelector('#quiz-feedback'),
   quizContinueButton: document.querySelector('#quiz-continue-button'),
@@ -161,14 +169,18 @@ function renderCard() {
   elements.subjectSelector.value = deck.id;
   elements.activeDeckDot.style.background = deck.color;
   elements.category.textContent = card.category || deck.subject.toUpperCase();
-  elements.sideLabel.textContent = flipped ? 'ANSWER' : 'TERM';
-  elements.question.textContent = flipped ? card.back : card.front;
-  elements.hint.innerHTML = flipped ? '<span aria-hidden="true">↵</span> Click to see question' : '<span aria-hidden="true">↵</span> Click to reveal answer';
+  elements.backCategory.textContent = card.category || deck.subject.toUpperCase();
+  elements.question.textContent = card.front;
+  elements.answer.textContent = card.back;
   elements.origin.textContent = `${deck.subject} · ${deck.name}`.toUpperCase();
+  elements.backOrigin.textContent = `${deck.subject} · ${deck.name}`.toUpperCase();
   elements.cardNumber.textContent = String(currentIndex + 1).padStart(2, '0');
+  elements.backCardNumber.textContent = String(currentIndex + 1).padStart(2, '0');
   elements.position.innerHTML = `${String(currentIndex + 1).padStart(2, '0')} <span>/</span> ${String(deck.cards.length).padStart(2, '0')}`;
   elements.card.classList.toggle('flipped', flipped);
   elements.card.classList.toggle('quiz-question-only', quizActive);
+  elements.cardFront.setAttribute('aria-hidden', String(flipped));
+  elements.cardBack.setAttribute('aria-hidden', String(!flipped));
   elements.card.setAttribute('aria-pressed', String(flipped));
   elements.card.setAttribute('aria-label', quizActive ? `Quiz question: ${card.front}` : `${flipped ? 'Answer' : 'Question'}: ${flipped ? card.back : card.front}. Click to ${flipped ? 'see question' : 'reveal answer'}`);
   renderQuizState();
@@ -194,6 +206,9 @@ function renderQuizState() {
     elements.quizStep.textContent = `QUESTION ${currentIndex + 1} / ${deck.cards.length}`;
     elements.quizScore.textContent = `${quizScore} correct`;
     elements.quizStreak.textContent = `${quizStreak} correct in a row`;
+    elements.quizTimer.textContent = `${quizTimeLeft}s`;
+    elements.quizTimer.setAttribute('aria-label', `${quizTimeLeft} seconds remaining`);
+    elements.quizTimer.classList.toggle('is-urgent', quizTimeLeft <= 5);
     elements.quizProgressFill.style.width = `${percent}%`;
     elements.quizOptions.innerHTML = quizOptions.map((option, index) => {
       const isCorrect = option === correctAnswer;
@@ -205,9 +220,12 @@ function renderQuizState() {
       return `<button class="${classes.join(' ')}" type="button" data-option-index="${index}" aria-pressed="${isSelected}"${quizAnswered ? ' disabled' : ''}><span class="option-letter">${String.fromCharCode(65 + index)}</span><span class="option-text">${escapeHtml(option)}</span><span class="option-mark" aria-hidden="true"></span></button>`;
     }).join('');
     elements.quizFeedback.hidden = !quizAnswered;
-    elements.quizFeedback.classList.toggle('is-correct', quizOptions[quizChoice] === correctAnswer);
-    elements.quizFeedback.classList.toggle('is-incorrect', quizOptions[quizChoice] !== correctAnswer);
-    elements.quizFeedback.textContent = quizOptions[quizChoice] === correctAnswer ? 'Correct. Nice recall.' : `Not quite. The answer is: ${correctAnswer}`;
+    const answerIsCorrect = quizChoice >= 0 && quizOptions[quizChoice] === correctAnswer;
+    elements.quizFeedback.classList.toggle('is-correct', answerIsCorrect);
+    elements.quizFeedback.classList.toggle('is-incorrect', !answerIsCorrect);
+    elements.quizFeedback.textContent = quizChoice < 0
+      ? `Time's up. The answer is: ${correctAnswer}`
+      : answerIsCorrect ? 'Correct. Nice recall.' : `Not quite. The answer is: ${correctAnswer}`;
     elements.quizContinueButton.hidden = !quizAnswered;
     elements.quizContinueButton.innerHTML = currentIndex + 1 === deck.cards.length ? 'See results <span aria-hidden="true">→</span>' : 'Continue <span aria-hidden="true">→</span>';
   }
@@ -258,6 +276,7 @@ function flipCard() {
 }
 
 function startQuiz() {
+  stopQuizTimer();
   quizActive = true;
   quizAnswered = false;
   quizComplete = false;
@@ -266,11 +285,14 @@ function startQuiz() {
   bestQuizStreak = 0;
   currentIndex = 0;
   flipped = false;
+  quizTimeLeft = 20;
   buildQuizOptions();
   renderCard();
+  startQuizTimer();
 }
 
 function exitQuiz() {
+  stopQuizTimer();
   quizActive = false;
   quizAnswered = false;
   quizComplete = false;
@@ -281,6 +303,7 @@ function exitQuiz() {
 
 function chooseQuizAnswer(choiceIndex) {
   if (!quizActive || quizAnswered || choiceIndex < 0 || choiceIndex >= quizOptions.length) return;
+  stopQuizTimer();
   quizChoice = choiceIndex;
   quizAnswered = true;
   const correct = quizOptions[choiceIndex] === getSelectedDeck().cards[currentIndex].back;
@@ -298,14 +321,40 @@ function advanceQuiz() {
   if (!quizActive || !quizAnswered) return;
   const deck = getSelectedDeck();
   if (currentIndex + 1 >= deck.cards.length) {
+    stopQuizTimer();
     quizComplete = true;
   } else {
     currentIndex += 1;
     quizAnswered = false;
     flipped = false;
+    quizTimeLeft = 20;
     buildQuizOptions();
+    startQuizTimer();
   }
   renderCard();
+}
+
+function startQuizTimer() {
+  stopQuizTimer();
+  quizTimeLeft = 20;
+  quizTimerInterval = window.setInterval(() => {
+    quizTimeLeft -= 1;
+    elements.quizTimer.textContent = `${quizTimeLeft}s`;
+    elements.quizTimer.setAttribute('aria-label', `${quizTimeLeft} seconds remaining`);
+    elements.quizTimer.classList.toggle('is-urgent', quizTimeLeft <= 5);
+    if (quizTimeLeft === 0) {
+      stopQuizTimer();
+      quizAnswered = true;
+      quizChoice = -1;
+      quizStreak = 0;
+      renderCard();
+    }
+  }, 1000);
+}
+
+function stopQuizTimer() {
+  window.clearInterval(quizTimerInterval);
+  quizTimerInterval = undefined;
 }
 
 function setDarkMode(enabled) {
@@ -372,6 +421,7 @@ function showToast(message) {
 
 function selectDeck(deckId) {
   if (!decks.some((deck) => deck.id === deckId)) return;
+  stopQuizTimer();
   quizActive = false;
   quizAnswered = false;
   quizComplete = false;

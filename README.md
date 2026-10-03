@@ -1,6 +1,6 @@
 # ExamVoice
 
-ExamVoice is a browser-based flashcard study app with subject decks, answer reveal, audio playback, review tracking, and quiz mode. Your decks, quiz answers, and appearance preference are stored in your browser.
+ExamVoice is a browser-based flashcard study app with subject decks, animated blue glass cards, answer reveal, audio playback, review tracking, and a timed multiple-choice quiz with feedback, streaks, progress, and a confetti result screen. Your decks and appearance preference are stored in your browser.
 
 ## Run it
 
